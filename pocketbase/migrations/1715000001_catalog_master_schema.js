@@ -1,0 +1,547 @@
+/// <reference path="../pb_data/types.d.ts" />
+migrate(
+  (app) => {
+    // 1. catalog_versions (C. Versionamento mínimo dos catálogos)
+    const catalogVersions = new Collection({
+      name: 'catalog_versions',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: null,
+      updateRule: null,
+      deleteRule: null,
+      fields: [
+        { name: 'id', type: 'text', primaryKey: true },
+        { name: 'version_code', type: 'text', required: true },
+        { name: 'commit_sha', type: 'text', required: true },
+        { name: 'tree_sha', type: 'text', required: false },
+        { name: 'description', type: 'text', required: false },
+        { name: 'active', type: 'bool', required: false },
+        { name: 'created', type: 'autodate', onCreate: true },
+        { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
+      ],
+      indexes: ['CREATE UNIQUE INDEX idx_catalog_versions_code ON catalog_versions (version_code)'],
+    })
+    app.save(catalogVersions)
+
+    // 2. catalog_import_audit (F. Auditoria da importação)
+    const catalogImportAudit = new Collection({
+      name: 'catalog_import_audit',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: null,
+      updateRule: null,
+      deleteRule: null,
+      fields: [
+        { name: 'id', type: 'text', primaryKey: true },
+        { name: 'execution_id', type: 'text', required: true },
+        { name: 'entity', type: 'text', required: true },
+        { name: 'source_file', type: 'text', required: true },
+        { name: 'commit_sha', type: 'text', required: true },
+        { name: 'file_hash', type: 'text', required: false },
+        { name: 'catalog_version', type: 'text', required: false },
+        { name: 'started_at', type: 'text', required: false },
+        { name: 'finished_at', type: 'text', required: false },
+        { name: 'expected_count', type: 'number', required: false, onlyInt: true },
+        { name: 'processed_count', type: 'number', required: false, onlyInt: true },
+        { name: 'inserted_count', type: 'number', required: false, onlyInt: true },
+        { name: 'updated_count', type: 'number', required: false, onlyInt: true },
+        { name: 'rejected_count', type: 'number', required: false, onlyInt: true },
+        {
+          name: 'status',
+          type: 'select',
+          required: true,
+          values: ['pending', 'completed', 'rejected', 'failed'],
+          maxSelect: 1,
+        },
+        { name: 'error_message', type: 'text', required: false },
+        { name: 'details', type: 'json', required: false },
+        { name: 'created', type: 'autodate', onCreate: true },
+        { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
+      ],
+      indexes: [
+        'CREATE INDEX idx_audit_exec_entity ON catalog_import_audit (execution_id, entity)',
+      ],
+    })
+    app.save(catalogImportAudit)
+
+    // 3. teams (33 registros)
+    const teams = new Collection({
+      name: 'teams',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: null,
+      updateRule: null,
+      deleteRule: null,
+      fields: [
+        { name: 'id', type: 'text', primaryKey: true },
+        { name: 'team_id', type: 'text', required: true },
+        { name: 'display_name', type: 'text', required: true },
+        { name: 'code', type: 'text', required: true },
+        { name: 'country_code', type: 'text', required: true },
+        { name: 'primary_color_hex', type: 'text', required: false },
+        { name: 'secondary_color_hex', type: 'text', required: false },
+        { name: 'emblem_asset_id', type: 'text', required: false },
+        { name: 'team_image_asset_id', type: 'text', required: false },
+        { name: 'side_view_asset_id', type: 'text', required: false },
+        { name: 'small_logo_asset_id', type: 'text', required: false },
+        { name: 'active', type: 'bool', required: false },
+        { name: 'notes', type: 'text', required: false },
+        { name: 'created', type: 'autodate', onCreate: true },
+        { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
+      ],
+      indexes: ['CREATE UNIQUE INDEX idx_teams_team_id ON teams (team_id)'],
+    })
+    app.save(teams)
+
+    // 4. team_attributes (33 registros, 1:1 com teams)
+    const teamAttributes = new Collection({
+      name: 'team_attributes',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: null,
+      updateRule: null,
+      deleteRule: null,
+      fields: [
+        { name: 'id', type: 'text', primaryKey: true },
+        { name: 'team_id', type: 'text', required: true },
+        {
+          name: 'design_center_level',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 1,
+          max: 5,
+        },
+        {
+          name: 'cfd_cluster_level',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 1,
+          max: 5,
+        },
+        {
+          name: 'wind_tunnel_level',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 1,
+          max: 5,
+        },
+        {
+          name: 'industrial_structure_level',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 1,
+          max: 5,
+        },
+        { name: 'factory_level', type: 'number', required: true, onlyInt: true, min: 1, max: 5 },
+        {
+          name: 'operations_center_level',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 1,
+          max: 5,
+        },
+        {
+          name: 'pit_stop_center_level',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 1,
+          max: 5,
+        },
+        { name: 'simulator_level', type: 'number', required: true, onlyInt: true, min: 1, max: 5 },
+        {
+          name: 'driver_academy_level',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 1,
+          max: 5,
+        },
+        { name: 'created', type: 'autodate', onCreate: true },
+        { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
+      ],
+      indexes: ['CREATE UNIQUE INDEX idx_team_attributes_team_id ON team_attributes (team_id)'],
+    })
+    app.save(teamAttributes)
+
+    // 5. drivers (188 registros)
+    const drivers = new Collection({
+      name: 'drivers',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: null,
+      updateRule: null,
+      deleteRule: null,
+      fields: [
+        { name: 'id', type: 'text', primaryKey: true },
+        { name: 'driver_id', type: 'text', required: true },
+        { name: 'display_name', type: 'text', required: true },
+        { name: 'first_name', type: 'text', required: false },
+        { name: 'last_name', type: 'text', required: false },
+        { name: 'short_code', type: 'text', required: false },
+        { name: 'nationality_code', type: 'text', required: false },
+        { name: 'birth_date', type: 'text', required: false },
+        { name: 'preferred_number', type: 'number', required: false, onlyInt: true },
+        { name: 'portrait_asset_id', type: 'text', required: false },
+        { name: 'active', type: 'bool', required: false },
+        { name: 'notes', type: 'text', required: false },
+        { name: 'created', type: 'autodate', onCreate: true },
+        { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
+      ],
+      indexes: ['CREATE UNIQUE INDEX idx_drivers_driver_id ON drivers (driver_id)'],
+    })
+    app.save(drivers)
+
+    // 6. driver_attributes (188 registros, 1:1 com drivers)
+    const driverAttributes = new Collection({
+      name: 'driver_attributes',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: null,
+      updateRule: null,
+      deleteRule: null,
+      fields: [
+        { name: 'id', type: 'text', primaryKey: true },
+        { name: 'driver_id', type: 'text', required: true },
+        { name: 'pace', type: 'number', required: true, onlyInt: true, min: 0, max: 100 },
+        {
+          name: 'qualifying_pace',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 0,
+          max: 100,
+        },
+        { name: 'race_craft', type: 'number', required: true, onlyInt: true, min: 0, max: 100 },
+        { name: 'consistency', type: 'number', required: true, onlyInt: true, min: 0, max: 100 },
+        {
+          name: 'tyre_management',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 0,
+          max: 100,
+        },
+        { name: 'wet_weather', type: 'number', required: true, onlyInt: true, min: 0, max: 100 },
+        { name: 'experience', type: 'number', required: true, onlyInt: true, min: 0, max: 100 },
+        { name: 'fitness', type: 'number', required: true, onlyInt: true, min: 0, max: 100 },
+        { name: 'marketability', type: 'number', required: true, onlyInt: true, min: 0, max: 100 },
+        { name: 'created', type: 'autodate', onCreate: true },
+        { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
+      ],
+      indexes: [
+        'CREATE UNIQUE INDEX idx_driver_attributes_driver_id ON driver_attributes (driver_id)',
+      ],
+    })
+    app.save(driverAttributes)
+
+    // 7. engines (11 registros)
+    const engines = new Collection({
+      name: 'engines',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: null,
+      updateRule: null,
+      deleteRule: null,
+      fields: [
+        { name: 'id', type: 'text', primaryKey: true },
+        { name: 'engine_id', type: 'text', required: true },
+        { name: 'display_name', type: 'text', required: true },
+        { name: 'country_code', type: 'text', required: true },
+        { name: 'power', type: 'number', required: true, onlyInt: true, min: 0, max: 100 },
+        { name: 'reliability', type: 'number', required: true, onlyInt: true, min: 0, max: 100 },
+        { name: 'efficiency', type: 'number', required: true, onlyInt: true, min: 0, max: 100 },
+        {
+          name: 'development_potential',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 0,
+          max: 100,
+        },
+        {
+          name: 'cost_tier',
+          type: 'select',
+          required: true,
+          values: ['low', 'medium', 'high'],
+          maxSelect: 1,
+        },
+        { name: 'logo_asset_id', type: 'text', required: false },
+        { name: 'logo_file_path', type: 'text', required: false },
+        { name: 'active', type: 'bool', required: false },
+        { name: 'is_proposed', type: 'bool', required: false },
+        { name: 'notes', type: 'text', required: false },
+        { name: 'created', type: 'autodate', onCreate: true },
+        { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
+      ],
+      indexes: ['CREATE UNIQUE INDEX idx_engines_engine_id ON engines (engine_id)'],
+    })
+    app.save(engines)
+
+    // 8. car_baselines (33 registros)
+    const carBaselines = new Collection({
+      name: 'car_baselines',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: null,
+      updateRule: null,
+      deleteRule: null,
+      fields: [
+        { name: 'id', type: 'text', primaryKey: true },
+        { name: 'team_id', type: 'text', required: true },
+        { name: 'baseline_version', type: 'text', required: true },
+        { name: 'aero_downforce', type: 'number', required: true, onlyInt: true, min: 0, max: 100 },
+        {
+          name: 'aero_efficiency',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 0,
+          max: 100,
+        },
+        {
+          name: 'mechanical_grip',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 0,
+          max: 100,
+        },
+        {
+          name: 'chassis_balance',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 0,
+          max: 100,
+        },
+        {
+          name: 'braking_performance',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 0,
+          max: 100,
+        },
+        {
+          name: 'tyre_preservation',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 0,
+          max: 100,
+        },
+        {
+          name: 'thermal_management',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 0,
+          max: 100,
+        },
+        {
+          name: 'chassis_reliability',
+          type: 'number',
+          required: true,
+          onlyInt: true,
+          min: 0,
+          max: 100,
+        },
+        { name: 'created', type: 'autodate', onCreate: true },
+        { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
+      ],
+      indexes: [
+        'CREATE UNIQUE INDEX idx_car_baselines_team_ver ON car_baselines (team_id, baseline_version)',
+      ],
+    })
+    app.save(carBaselines)
+
+    // 9. managers (6 registros)
+    const managers = new Collection({
+      name: 'managers',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: null,
+      updateRule: null,
+      deleteRule: null,
+      fields: [
+        { name: 'id', type: 'text', primaryKey: true },
+        { name: 'manager_id', type: 'text', required: true },
+        { name: 'display_order', type: 'number', required: true, onlyInt: true },
+        { name: 'archetype_code', type: 'text', required: true },
+        { name: 'display_name', type: 'text', required: true },
+        { name: 'role', type: 'text', required: true },
+        { name: 'headline_quote', type: 'text', required: false },
+        { name: 'profile_text', type: 'text', required: false },
+        { name: 'ideal_for_1', type: 'text', required: false },
+        { name: 'ideal_for_2', type: 'text', required: false },
+        { name: 'ideal_for_3', type: 'text', required: false },
+        { name: 'signature', type: 'text', required: false },
+        { name: 'image_asset_filename', type: 'text', required: false },
+        { name: 'is_enabled', type: 'bool', required: false },
+        { name: 'record_type', type: 'text', required: false },
+        { name: 'created', type: 'autodate', onCreate: true },
+        { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
+      ],
+      indexes: ['CREATE UNIQUE INDEX idx_managers_manager_id ON managers (manager_id)'],
+    })
+    app.save(managers)
+
+    // 10. manager_modifiers (24 registros: 4 por manager)
+    const managerModifiers = new Collection({
+      name: 'manager_modifiers',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: null,
+      updateRule: null,
+      deleteRule: null,
+      fields: [
+        { name: 'id', type: 'text', primaryKey: true },
+        { name: 'manager_id', type: 'text', required: true },
+        { name: 'slot', type: 'number', required: true, onlyInt: true, min: 1, max: 4 },
+        { name: 'modifier_target', type: 'text', required: true },
+        { name: 'modifier_value', type: 'number', required: true, onlyInt: true },
+        {
+          name: 'modifier_kind',
+          type: 'select',
+          required: true,
+          values: ['bonus', 'penalty'],
+          maxSelect: 1,
+        },
+        { name: 'unit', type: 'text', required: false },
+        { name: 'mechanic_status', type: 'text', required: false },
+        { name: 'source_image', type: 'text', required: false },
+        { name: 'created', type: 'autodate', onCreate: true },
+        { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
+      ],
+      indexes: [
+        'CREATE UNIQUE INDEX idx_manager_modifiers_mgr_slot ON manager_modifiers (manager_id, slot)',
+      ],
+    })
+    app.save(managerModifiers)
+
+    // 11. circuits (43 registros, 39 colunas)
+    const circuits = new Collection({
+      name: 'circuits',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: null,
+      updateRule: null,
+      deleteRule: null,
+      fields: [
+        { name: 'id', type: 'text', primaryKey: true },
+        { name: 'circuit_id', type: 'text', required: true },
+        { name: 'display_name', type: 'text', required: true },
+        { name: 'country_code', type: 'text', required: true },
+        { name: 'city', type: 'text', required: false },
+        { name: 'length_km', type: 'number', required: false },
+        { name: 'turn_count', type: 'number', required: false, onlyInt: true },
+        { name: 'layout_asset_id', type: 'text', required: false },
+        { name: 'active', type: 'bool', required: false },
+        { name: 'notes', type: 'text', required: false },
+        { name: 'tipo', type: 'text', required: false },
+        { name: 'configuracao_tracado', type: 'text', required: false },
+        { name: 'sentido_corrida', type: 'text', required: false },
+        { name: 'abrasividade', type: 'text', required: false },
+        { name: 'exigencia_aerodinamica', type: 'text', required: false },
+        { name: 'exigencia_motor', type: 'text', required: false },
+        { name: 'exigencia_tracao', type: 'text', required: false },
+        { name: 'exigencia_frenagem', type: 'text', required: false },
+        { name: 'carga_lateral', type: 'text', required: false },
+        { name: 'recuperacao_energia', type: 'text', required: false },
+        { name: 'dificuldade_ultrapassagem', type: 'text', required: false },
+        { name: 'perda_pit_stop_s', type: 'number', required: false },
+        { name: 'tempo_volta_ref_s', type: 'number', required: false },
+        { name: 'altitude_m', type: 'number', required: false, onlyInt: true },
+        { name: 'observacoes', type: 'text', required: false },
+        { name: 'svg_asset_id', type: 'text', required: false },
+        { name: 'svg_path', type: 'text', required: false },
+        { name: 'track_path_id', type: 'text', required: false },
+        { name: 'svg_track_length_px', type: 'number', required: false },
+        { name: 'svg_m_por_px', type: 'number', required: false },
+        { name: 'start_finish_progress', type: 'number', required: false },
+        { name: 'race_direction', type: 'text', required: false },
+        { name: 'pit_path_id', type: 'text', required: false },
+        { name: 'pit_entry_progress', type: 'number', required: false },
+        { name: 'pit_exit_progress', type: 'number', required: false },
+        { name: 'fonte_dados', type: 'text', required: false },
+        { name: 'pendencias_validacao', type: 'text', required: false },
+        { name: 'start_line_progress', type: 'number', required: false },
+        { name: 'length_geo_km', type: 'number', required: false },
+        { name: 'created', type: 'autodate', onCreate: true },
+        { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
+      ],
+      indexes: ['CREATE UNIQUE INDEX idx_circuits_circuit_id ON circuits (circuit_id)'],
+    })
+    app.save(circuits)
+
+    // 12. assets_manifest (schema pronto, 0 registros)
+    const assetsManifest = new Collection({
+      name: 'assets_manifest',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: null,
+      updateRule: null,
+      deleteRule: null,
+      fields: [
+        { name: 'id', type: 'text', primaryKey: true },
+        { name: 'asset_id', type: 'text', required: true },
+        { name: 'category', type: 'text', required: false },
+        { name: 'file_path', type: 'text', required: false },
+        { name: 'mime_type', type: 'text', required: false },
+        { name: 'alt_text', type: 'text', required: false },
+        { name: 'width_px', type: 'number', required: false, onlyInt: true },
+        { name: 'height_px', type: 'number', required: false, onlyInt: true },
+        { name: 'asset_version', type: 'text', required: false },
+        { name: 'sha256', type: 'text', required: false },
+        { name: 'source_reference', type: 'text', required: false },
+        { name: 'rights_status', type: 'text', required: false },
+        { name: 'active', type: 'bool', required: false },
+        { name: 'notes', type: 'text', required: false },
+        { name: 'created', type: 'autodate', onCreate: true },
+        { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
+      ],
+      indexes: ['CREATE UNIQUE INDEX idx_assets_manifest_asset_id ON assets_manifest (asset_id)'],
+    })
+    app.save(assetsManifest)
+  },
+  (app) => {
+    const list = [
+      'assets_manifest',
+      'circuits',
+      'manager_modifiers',
+      'managers',
+      'car_baselines',
+      'engines',
+      'driver_attributes',
+      'drivers',
+      'team_attributes',
+      'teams',
+      'catalog_import_audit',
+      'catalog_versions',
+    ]
+    for (let i = 0; i < list.length; i++) {
+      try {
+        const col = app.findCollectionByNameOrId(list[i])
+        if (col) app.delete(col)
+      } catch (_) {}
+    }
+  },
+)

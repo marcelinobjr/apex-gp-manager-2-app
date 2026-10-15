@@ -17,8 +17,10 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
+import { Outlet } from 'react-router-dom'
+
 interface LayoutProps {
-  children: React.ReactNode
+  children?: React.ReactNode
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
@@ -234,7 +236,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Content Area */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
-          {children}
+          {children ?? <Outlet />}
         </main>
       </div>
 
