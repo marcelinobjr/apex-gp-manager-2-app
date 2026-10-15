@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 18% 7%;
+    --foreground: 210 20% 98%;
+
+    --card: 220 20% 11%;
+    --card-foreground: 210 20% 98%;
+
+    --popover: 220 20% 11%;
+    --popover-foreground: 210 20% 98%;
+
+    --primary: 2 100% 44%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 16% 16%;
+    --secondary-foreground: 210 20% 98%;
+
+    --muted: 220 16% 18%;
+    --muted-foreground: 218 12% 65%;
+
+    --accent: 220 18% 20%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 2 100% 44%;
+
+    --radius: 0.375rem;
+
+    --apex-red: #e10600;
+    --apex-red-hover: #c00500;
+    --apex-graphite: #0f1115;
+    --apex-surface: #161a21;
+    --apex-surface-hover: #1c212a;
+    --apex-border: #23272f;
+    --apex-success: #00af54;
+    --apex-warning: #ffb800;
+    --apex-amber: #ff8a00;
+    --apex-blue: #1e88e5;
+    --apex-teal: #00b8b8;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-[#0F1115] text-foreground font-sans antialiased;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+  code,
+  pre,
+  .font-mono {
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+      monospace;
+  }
+}
+
+/* Custom scrollbars for technical dark tables */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f1115;
+}
+::-webkit-scrollbar-thumb {
+  background: #23272f;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #323846;
+}
